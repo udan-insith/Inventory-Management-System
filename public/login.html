@@ -10,5 +10,156 @@
 			rel="stylesheet"
 		/>
 		<link rel="stylesheet" href="/css/style.css" />
+		<style>
+			body {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				min-height: 100vh;
+				background:
+					radial-gradient(
+						circle at 15% 20%,
+						rgba(31, 111, 92, 0.08),
+						transparent 40%
+					),
+					radial-gradient(
+						circle at 85% 80%,
+						rgba(181, 84, 42, 0.08),
+						transparent 40%
+					),
+					var(--paper);
+			}
+
+			.login-wrap {
+				display: flex;
+				width: 100%;
+				max-width: 880px;
+				margin: 24px;
+				border-radius: 16px;
+				overflow: hidden;
+				box-shadow: 0 30px 70px -30px rgba(38, 34, 28, 0.35);
+			}
+
+			.login-hero {
+				flex: 1;
+				background: var(--ink);
+				color: #f1ecdf;
+				padding: 44px 38px;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+				position: relative;
+				overflow: hidden;
+				animation: heroIn 0.55s var(--ease-out);
+			}
+
+			@keyframes heroIn {
+				from {
+					opacity: 0;
+					transform: translateX(-14px);
+				}
+				to {
+					opacity: 1;
+					transform: translateX(0);
+				}
+			}
+
+			.login-hero .brand {
+				color: #f6f1e4;
+				font-size: 26px;
+				position: relative;
+				z-index: 1;
+			}
+
+			.login-hero .brand-sub {
+				color: #cfc7b3;
+				font-size: 14px;
+				margin-top: 8px;
+				max-width: 240px;
+				position: relative;
+				z-index: 1;
+			}
+
+			.seal-mark {
+				position: absolute;
+				right: -40px;
+				bottom: -40px;
+				width: 220px;
+				height: 220px;
+				opacity: 0.9;
+			}
+			.seal-ring {
+				position: absolute;
+				border-radius: 50%;
+				border: 1px solid rgba(241, 236, 223, 0.22);
+			}
+			.seal-ring.r1 {
+				inset: 0;
+			}
+			.seal-ring.r2 {
+				inset: 22px;
+				border-color: rgba(31, 111, 92, 0.4);
+			}
+			.seal-ring.r3 {
+				inset: 44px;
+				border-color: rgba(241, 236, 223, 0.16);
+			}
+
+			.login-hero .footnote {
+				font-size: 12.5px;
+				color: #9c9483;
+				position: relative;
+				z-index: 1;
+			}
+
+			.login-panel {
+				flex: 1;
+				background: var(--surface);
+				padding: 48px 42px;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				animation: panelIn 0.55s var(--ease-out) 0.08s backwards;
+			}
+
+			@keyframes panelIn {
+				from {
+					opacity: 0;
+					transform: translateY(10px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			.login-panel h1 {
+				font-size: 23px;
+				margin-bottom: 6px;
+			}
+			.login-panel .sub {
+				color: var(--ink-soft);
+				font-size: 14px;
+				margin-bottom: 26px;
+			}
+
+			.login-submit {
+				width: 100%;
+				margin-top: 4px;
+				padding: 11px 16px;
+			}
+
+			@media (max-width: 720px) {
+				.login-wrap {
+					flex-direction: column;
+				}
+				.login-hero {
+					padding: 32px 28px;
+				}
+				.seal-mark {
+					display: none;
+				}
+			}
+		</style>
 	</head>
 </html>
