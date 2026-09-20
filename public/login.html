@@ -162,4 +162,64 @@
 			}
 		</style>
 	</head>
+	<body>
+		<div class="login-wrap">
+			<div class="login-hero">
+				<div>
+					<div class="brand">Gift Storage</div>
+					<div class="brand-sub">
+						Bank of Ceylon — Western Province South. Issue, receive, and track
+						branch gift items with a full audit trail.
+					</div>
+				</div>
+				<div class="seal-mark" aria-hidden="true">
+					<div class="seal-ring r1"></div>
+					<div class="seal-ring r2"></div>
+					<div class="seal-ring r3"></div>
+				</div>
+				<div class="footnote">Internal use only</div>
+			</div>
+
+			<div class="login-panel">
+				<h1>Welcome back</h1>
+				<div class="sub">
+					Log in with the username and password you were given.
+				</div>
+
+				<div class="form-error" id="login-error"></div>
+
+				<form id="login-form" novalidate>
+					<div class="field">
+						<label for="username">Username</label>
+						<input
+							type="text"
+							id="username"
+							name="username"
+							autocomplete="username"
+							placeholder="e.g. shanika"
+							required
+						/>
+					</div>
+					<div class="field">
+						<label for="password">Password</label>
+						<input
+							type="password"
+							id="password"
+							name="password"
+							autocomplete="current-password"
+							placeholder="••••••••"
+							required
+						/>
+					</div>
+					<button
+						type="submit"
+						class="btn btn-primary login-submit"
+						id="login-submit"
+					>
+						Log in
+					</button>
+				</form>
+			</div>
+		</div>
+	</body>
 </html>
