@@ -12,4 +12,90 @@
 		<link rel="stylesheet" href="/css/style.css" />
 		<link rel="stylesheet" href="/css/print.css" />
 	</head>
+	<body data-page="issue" data-txn-type="issue">
+		<div class="app-shell">
+			<div id="sidebar-root"></div>
+
+			<main class="main">
+				<div class="page-header">
+					<div>
+						<h1>Issue Gifts</h1>
+						<div class="page-sub">
+							Send gifts out to a branch for an event — covers as many items as
+							you need.
+						</div>
+					</div>
+				</div>
+
+				<div class="letter-card issue-theme" id="letter-card">
+					<div>
+						<div class="letter-status-title">Issue letter</div>
+						<div class="letter-status-sub" id="letter-sub">Checking…</div>
+					</div>
+					<div class="letter-actions">
+						<button
+							class="btn btn-outline btn-sm"
+							id="upload-letter-btn"
+							style="display: none"
+						>
+							Upload
+						</button>
+					</div>
+				</div>
+
+				<form id="txn-form">
+					<div class="txn-page-layout">
+						<div class="card">
+							<div class="section-title">Details</div>
+							<div class="form-error" id="txn-error"></div>
+							<div class="field">
+								<label for="txn-branch">Branch Name</label>
+								<select id="txn-branch" required>
+									<option value="">Select a branch…</option>
+								</select>
+							</div>
+							<div class="field">
+								<label for="txn-date">Date</label>
+								<input type="date" id="txn-date" required />
+							</div>
+							<div class="field mt-0">
+								<label for="txn-event">Event Name</label>
+								<input
+									type="text"
+									id="txn-event"
+									placeholder="e.g. Branch Anniversary"
+									required
+								/>
+							</div>
+						</div>
+
+						<div class="card">
+							<div class="flex-between" style="margin-bottom: 10px">
+								<div class="section-title" style="margin-bottom: 0">Items</div>
+								<button
+									type="button"
+									class="btn btn-outline btn-sm"
+									id="txn-add-item-btn"
+								>
+									+ Add Item
+								</button>
+							</div>
+							<div class="txn-items-list" id="txn-items-list">
+								<div class="txn-items-empty">No items added yet.</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="modal-actions" style="max-width: 460px; margin-top: 20px">
+						<button type="button" class="btn btn-outline" id="txn-print-btn">
+							Print
+						</button>
+						<button type="submit" class="btn btn-clay" id="txn-submit-btn">
+							Issue
+						</button>
+					</div>
+				</form>
+			</main>
+		</div>
+	</body>
 </html>
