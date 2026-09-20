@@ -25,4 +25,135 @@
 			}
 		</style>
 	</head>
+	<body data-page="requests">
+		<div class="app-shell">
+			<div id="sidebar-root"></div>
+
+			<main class="main">
+				<div class="page-header">
+					<div>
+						<h1>Received Requests</h1>
+						<div class="page-sub">
+							Branch requests logged here, each with its supporting document.
+						</div>
+					</div>
+					<div style="display: flex; gap: 10px">
+						<button class="btn btn-outline" id="print-requests-btn">
+							Print (PDF)
+						</button>
+						<button class="btn btn-primary" id="add-request-btn">
+							+ Add Request
+						</button>
+					</div>
+				</div>
+
+				<div class="filter-bar">
+					<div class="filter-group">
+						<label>Branch</label>
+						<select id="branch-filter">
+							<option value="all">All branches</option>
+						</select>
+					</div>
+					<div class="filter-group">
+						<label>From</label>
+						<input type="date" id="date-from" />
+					</div>
+					<div class="filter-group">
+						<label>To</label>
+						<input type="date" id="date-to" />
+					</div>
+					<button
+						type="button"
+						class="btn btn-ghost btn-sm"
+						id="clear-filters-btn"
+						style="align-self: flex-end"
+					>
+						Clear filters
+					</button>
+				</div>
+
+				<div class="card" style="padding: 0">
+					<table class="log-table sortable" id="requests-table">
+						<thead>
+							<tr>
+								<th data-sort="request_date">Date</th>
+								<th data-sort="branch_name">Branch</th>
+								<th data-sort="description">Description</th>
+								<th>File</th>
+								<th data-sort="uploaded_by">Uploaded by</th>
+								<th style="width: 60px"></th>
+							</tr>
+						</thead>
+						<tbody id="requests-tbody"></tbody>
+					</table>
+				</div>
+			</main>
+		</div>
+
+		<!-- ===================== Add Request modal ===================== -->
+		<div class="modal-backdrop" id="add-request-modal" aria-hidden="true">
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h2>Log a received request</h2>
+					<button class="modal-close" data-modal-close aria-label="Close">
+						&times;
+					</button>
+				</div>
+				<div class="modal-sub">
+					Attach the branch's request as an image, PDF, or Word document.
+				</div>
+				<div class="form-error" id="add-request-error"></div>
+				<form id="add-request-form">
+					<div class="field">
+						<label for="request-branch">Branch Name</label>
+						<select id="request-branch" required>
+							<option value="">Select a branch…</option>
+						</select>
+					</div>
+					<div class="field">
+						<label for="request-date">Date</label>
+						<input type="date" id="request-date" required />
+					</div>
+					<div class="field">
+						<label for="request-description">Description</label>
+						<textarea
+							id="request-description"
+							placeholder="e.g. Requesting 20 desk clocks for branch anniversary"
+						></textarea>
+					</div>
+					<div class="field">
+						<label for="request-file">File (image, PDF, or Word)</label>
+						<input
+							type="file"
+							id="request-file"
+							accept="image/*,application/pdf,.doc,.docx"
+							required
+						/>
+					</div>
+					<div class="modal-actions">
+						<button type="button" class="btn btn-outline" data-modal-close>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							class="btn btn-primary"
+							id="add-request-submit"
+						>
+							Save Request
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<script src="/js/api.js"></script>
+		<script src="/js/toast.js"></script>
+		<script src="/js/modal.js"></script>
+		<script src="/js/branches.js"></script>
+		<script src="/js/sortable-log.js"></script>
+		<script src="/js/nav.js"></script>
+		<script src="/js/requests.js"></script>
+
+		<div class="print-area print-only" id="print-area"></div>
+	</body>
 </html>
