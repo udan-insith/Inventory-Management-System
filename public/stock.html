@@ -12,4 +12,34 @@
 		<link rel="stylesheet" href="/css/style.css" />
 		<link rel="stylesheet" href="/css/print.css" />
 	</head>
+	<body data-page="stock">
+		<div class="app-shell">
+			<div id="sidebar-root"></div>
+
+			<main class="main">
+				<div class="page-header">
+					<div>
+						<h1>Stock</h1>
+						<div class="page-sub">
+							Every item in the storage. Issue and Receive have their own pages
+							now.
+						</div>
+					</div>
+					<button class="btn btn-primary" id="add-item-btn">
+						+ Add New Item
+					</button>
+				</div>
+
+				<div class="search-row">
+					<input
+						type="text"
+						id="item-search"
+						placeholder="Search items by name…"
+					/>
+				</div>
+
+				<div id="item-grid" class="item-grid"></div>
+			</main>
+		</div>
+	</body>
 </html>
