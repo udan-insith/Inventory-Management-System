@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Gift Storage — Users</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="/css/style.css" />
+	</head>
+	<body data-page="users">
+		<div class="app-shell">
+			<div id="sidebar-root"></div>
+
+			<main class="main">
+				<div class="page-header">
+					<div>
+						<h1>Users</h1>
+						<div class="page-sub">
+							Admins can add, rename or remove Normal User accounts. Admin
+							accounts are protected here.
+						</div>
+					</div>
+					<button class="btn btn-primary" id="add-user-btn">+ Add User</button>
+				</div>
+
+				<div class="card" style="margin-bottom: 24px">
+					<div class="flex-between" style="flex-wrap: wrap; gap: 16px">
+						<div>
+							<div style="font-weight: 600; margin-bottom: 2px">My account</div>
+							<div class="muted" style="font-size: 13.5px" id="my-account-sub">
+								Loading…
+							</div>
+						</div>
+						<button class="btn btn-outline" id="change-my-credentials-btn">
+							Change Username / Password
+						</button>
+					</div>
+				</div>
+
+				<div class="card" style="padding: 0">
+					<table class="log-table" id="users-table">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Username</th>
+								<th>Role</th>
+								<th style="width: 220px">Actions</th>
+							</tr>
+						</thead>
+						<tbody id="users-tbody"></tbody>
+					</table>
+				</div>
+
+				<div class="section-title" style="margin-top: 36px">Danger zone</div>
+				<div class="card danger-zone">
+					<div class="flex-between" style="flex-wrap: wrap; gap: 16px">
+						<div>
+							<div style="font-weight: 600; margin-bottom: 4px">
+								Reset application (testing only)
+							</div>
+							<div class="muted" style="font-size: 13.5px; max-width: 520px">
+								Wipes every item (and photo), every Issue / Receive entry, the
+								Total History, both letters, and every logged Received Request
+								(and its file) — then recreates the five default accounts from
+								scratch. Everyone will need to log in again. This cannot be
+								undone.
+							</div>
+						</div>
+						<button class="btn btn-danger" id="reset-app-btn">
+							Reset Application
+						</button>
+					</div>
+				</div>
+			</main>
+		</div>
+
+		<!-- ===================== Add User modal ===================== -->
+		<div class="modal-backdrop" id="add-user-modal" aria-hidden="true">
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h2>Add a new user</h2>
+					<button class="modal-close" data-modal-close aria-label="Close">
+						&times;
+					</button>
+				</div>
+				<div class="modal-sub">New users are added as Normal Users.</div>
+				<div class="form-error" id="add-user-error"></div>
+				<form id="add-user-form">
+					<div class="field">
+						<label for="new-user-display-name">Full name</label>
+						<input
+							type="text"
+							id="new-user-display-name"
+							placeholder="e.g. Kavindu School Leaver"
+							required
+						/>
+					</div>
+					<div class="field">
+						<label for="new-user-username">Username</label>
+						<input
+							type="text"
+							id="new-user-username"
+							placeholder="e.g. kavindu"
+							required
+						/>
+					</div>
+					<div class="field">
+						<label for="new-user-password">Password</label>
+						<input
+							type="text"
+							id="new-user-password"
+							placeholder="At least 6 characters"
+							required
+						/>
+					</div>
+					<div class="modal-actions">
+						<button type="button" class="btn btn-outline" data-modal-close>
+							Cancel
+						</button>
+						<button type="submit" class="btn btn-primary" id="add-user-submit">
+							Add User
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<!-- ===================== Edit User modal ===================== -->
+		<div class="modal-backdrop" id="edit-user-modal" aria-hidden="true">
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h2>Edit user</h2>
+					<button class="modal-close" data-modal-close aria-label="Close">
+						&times;
+					</button>
+				</div>
+				<div class="form-error" id="edit-user-error"></div>
+				<form id="edit-user-form">
+					<div class="field">
+						<label for="edit-user-display-name">Full name</label>
+						<input type="text" id="edit-user-display-name" required />
+					</div>
+					<div class="field">
+						<label for="edit-user-username">Username</label>
+						<input type="text" id="edit-user-username" required />
+					</div>
+					<div class="field">
+						<label for="edit-user-password">New password (optional)</label>
+						<input
+							type="text"
+							id="edit-user-password"
+							placeholder="Leave blank to keep the current password"
+						/>
+					</div>
+					<div class="modal-actions">
+						<button type="button" class="btn btn-outline" data-modal-close>
+							Cancel
+						</button>
+						<button type="submit" class="btn btn-primary" id="edit-user-submit">
+							Save Changes
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<!-- ===================== Change My Credentials modal ===================== -->
+		<div
+			class="modal-backdrop"
+			id="change-my-credentials-modal"
+			aria-hidden="true"
+		>
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h2>Change username / password</h2>
+					<button class="modal-close" data-modal-close aria-label="Close">
+						&times;
+					</button>
+				</div>
+				<div class="modal-sub">
+					Enter your current password to confirm it's really you.
+				</div>
+				<div class="form-error" id="change-my-credentials-error"></div>
+				<form id="change-my-credentials-form">
+					<div class="field">
+						<label for="my-current-password">Current password</label>
+						<input type="password" id="my-current-password" required />
+					</div>
+					<div class="field">
+						<label for="my-new-username">New username (optional)</label>
+						<input
+							type="text"
+							id="my-new-username"
+							placeholder="Leave blank to keep your current username"
+						/>
+					</div>
+					<div class="field">
+						<label for="my-new-password">New password (optional)</label>
+						<input
+							type="password"
+							id="my-new-password"
+							placeholder="At least 6 characters — leave blank to keep it"
+						/>
+					</div>
+					<div class="field">
+						<label for="my-new-password-confirm">Confirm new password</label>
+						<input
+							type="password"
+							id="my-new-password-confirm"
+							placeholder="Repeat the new password"
+						/>
+					</div>
+					<div class="modal-actions">
+						<button type="button" class="btn btn-outline" data-modal-close>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							class="btn btn-primary"
+							id="change-my-credentials-submit"
+						>
+							Save Changes
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<script src="/js/api.js"></script>
+		<script src="/js/toast.js"></script>
+		<script src="/js/modal.js"></script>
+		<script src="/js/nav.js"></script>
+		<script src="/js/users.js"></script>
+	</body>
+</html>
