@@ -137,5 +137,56 @@
 				</form>
 			</div>
 		</div>
+
+		<!-- ===================== Upload Letter modal (Udan only) ===================== -->
+		<div class="modal-backdrop" id="upload-letter-modal" aria-hidden="true">
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h2>Upload the Receive letter</h2>
+					<button class="modal-close" data-modal-close aria-label="Close">
+						&times;
+					</button>
+				</div>
+				<div class="modal-sub">
+					This is a one-time upload. Once saved, this exact PDF is what everyone
+					will print from now on — double check it before uploading.
+				</div>
+				<div class="form-error" id="upload-letter-error"></div>
+				<form id="upload-letter-form">
+					<div class="field">
+						<label for="letter-file">Letter (PDF)</label>
+						<input
+							type="file"
+							id="letter-file"
+							accept="application/pdf"
+							required
+						/>
+					</div>
+					<div class="modal-actions">
+						<button type="button" class="btn btn-outline" data-modal-close>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							class="btn btn-primary"
+							id="upload-letter-submit"
+						>
+							Upload
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<div class="print-area print-only" id="print-area"></div>
+		<iframe id="letter-print-frame" style="display: none"></iframe>
+
+		<script src="/js/api.js"></script>
+		<script src="/js/toast.js"></script>
+		<script src="/js/modal.js"></script>
+		<script src="/js/branches.js"></script>
+		<script src="/js/sortable-log.js"></script>
+		<script src="/js/nav.js"></script>
+		<script src="/js/transaction-page.js"></script>
 	</body>
 </html>
