@@ -56,3 +56,29 @@ app.use("/item-images", express.static(require("./config").ITEM_IMAGE_DIR));
 app.get("/", (req, res) => {
 	res.redirect("/login.html");
 });
+
+// ---- JSON error handling (so the frontend always gets JSON, never an
+// HTML stack trace page) ------------------------------------------------
+app.use("/api", (req, res) => {
+	res.status(404).json({ error: "Not found." });
+});
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+	console.error(err);
+	const status = err.status || 500;
+	res
+		.status(status)
+		.json({ error: err.message || "Something went wrong on the server." });
+});
+
+db.ready
+	.then(() => {
+		app.listen(PORT, () => {
+			console.log(`Gift Storage system running at http://localhost:${PORT}`);
+		});
+	})
+	.catch((err) => {
+		console.error("Failed to start (database not ready):", err);
+		process.exit(1);
+	});
