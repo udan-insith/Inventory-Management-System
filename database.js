@@ -228,3 +228,44 @@ async function seedDefaultUsers() {
 	}
 	console.log("Seeded 5 default users (3 admins, 2 normal users).");
 }
+
+// ---------------------------------------------------------------------
+// Boot sequence: create the database itself if it doesn't exist yet,
+// connect to it, create tables, seed users on a truly fresh install.
+// `ready` is a promise server.js awaits before accepting any requests.
+// ---------------------------------------------------------------------
+async function init() {
+	let bootstrapPool;
+	try {
+		bootstrapPool = makePool(false);
+		await bootstrapPool.query(
+			`CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\``,
+		);
+	} catch (err) {
+		console.error(
+			`\nCould not connect to MySQL at ${MYSQL_HOST}:${MYSQL_PORT} as user "${MYSQL_USER}".\n` +
+				"Check your .env file (MYSQL_HOST / MYSQL_PORT / MYSQL_USER / MYSQL_PASSWORD) and make sure MySQL is running.\n" +
+				`Original error: ${err.message}\n`,
+		);
+		process.exit(1);
+	} finally {
+		if (bootstrapPool) await bootstrapPool.end();
+	}
+
+	pool = makePool(true);
+	await ensureSchema();
+
+	const { c: userCount } = await get("SELECT COUNT(*) AS c FROM users");
+	if (userCount === 0) {
+		await seedDefaultUsers();
+	}
+}
+
+module.exports = {
+	get,
+	all,
+	run,
+	transaction,
+	seedDefaultUsers,
+	ready: init(),
+};
