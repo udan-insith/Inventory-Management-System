@@ -12,4 +12,85 @@
 		<link rel="stylesheet" href="/css/style.css" />
 		<link rel="stylesheet" href="/css/print.css" />
 	</head>
+	<body data-page="history">
+		<div class="app-shell">
+			<div id="sidebar-root"></div>
+
+			<main class="main">
+				<div class="page-header">
+					<div>
+						<h1>Total History</h1>
+						<div class="page-sub">
+							Every Issue and Receive entry, filed here automatically as it
+							happens.
+						</div>
+					</div>
+					<button class="btn btn-outline" id="print-history-btn">
+						Print (PDF)
+					</button>
+				</div>
+
+				<div class="filter-bar">
+					<div class="filter-group">
+						<label>Type</label>
+						<select id="type-filter">
+							<option value="all">All entries</option>
+							<option value="issue">Issue only</option>
+							<option value="receive">Receive only</option>
+						</select>
+					</div>
+					<div class="filter-group">
+						<label>Item</label>
+						<select id="item-filter">
+							<option value="all">All items</option>
+						</select>
+					</div>
+					<div class="filter-group">
+						<label>Branch</label>
+						<select id="branch-filter">
+							<option value="all">All branches</option>
+						</select>
+					</div>
+					<div class="filter-group">
+						<label>From</label>
+						<input type="date" id="date-from" />
+					</div>
+					<div class="filter-group">
+						<label>To</label>
+						<input type="date" id="date-to" />
+					</div>
+					<button
+						type="button"
+						class="btn btn-ghost btn-sm"
+						id="clear-filters-btn"
+						style="align-self: flex-end"
+					>
+						Clear filters
+					</button>
+				</div>
+
+				<div class="history-count" id="history-count"></div>
+
+				<div class="card" style="padding: 0">
+					<div class="log-wrap" style="max-height: none; border: none">
+						<table class="log-table sortable" id="history-table">
+							<thead>
+								<tr>
+									<th data-sort="log_date">Date</th>
+									<th data-sort="type">Type</th>
+									<th data-sort="item_name">Item</th>
+									<th data-sort="quantity">Qty</th>
+									<th data-sort="branch_name">Branch</th>
+									<th data-sort="event_name">Event</th>
+									<th data-sort="balance_after">Balance after</th>
+									<th data-sort="logged_by">Logged by</th>
+								</tr>
+							</thead>
+							<tbody id="history-tbody"></tbody>
+						</table>
+					</div>
+				</div>
+			</main>
+		</div>
+	</body>
 </html>
