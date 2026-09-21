@@ -182,3 +182,49 @@ async function ensureSchema() {
 
 	await ensureColumn("items", "low_stock_threshold", "INT NOT NULL DEFAULT 5");
 }
+
+// Adds a column to an existing table if it isn't already there (for
+// databases created before this column existed) — checked via
+// INFORMATION_SCHEMA rather than a fragile try/catch around ALTER TABLE.
+async function ensureColumn(table, column, definition) {
+	const row = await get(
+		`SELECT COUNT(*) AS c FROM information_schema.columns
+     WHERE table_schema = ? AND table_name = ? AND column_name = ?`,
+		[MYSQL_DATABASE, table, column],
+	);
+	if (row.c === 0) {
+		await pool.query(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+	}
+}
+
+// ---------------------------------------------------------------------
+// Seed the five required users. Exported as db.seedDefaultUsers() so the
+// "Reset Application" feature can call the exact same logic again later.
+// ---------------------------------------------------------------------
+async function seedDefaultUsers() {
+	// Udan School Leaver is the one account allowed to upload the one-time
+	// Issue/Receive letters. This is tracked via can_upload_letter (not the
+	// username) so the permission survives an admin renaming the account later.
+	const seedUsers = [
+		["shanika", "M.D.S Madushanka", "shanikamd@123", "admin", 0],
+		["peter", "Gayasri Peter", "gayasripeter@123", "admin", 0],
+		["hasindu", "Hasindu Wijekoon", "hasinduwije@123", "admin", 0],
+		["udan", "G.U.I Perera", "udaninsith@123", "normal", 1],
+		["mihisal", "Mihisal Pamuditha", "mihisalpamu@123", "normal", 0],
+	];
+
+	for (const [
+		username,
+		displayName,
+		plainPassword,
+		role,
+		canUploadLetter,
+	] of seedUsers) {
+		const hash = bcrypt.hashSync(plainPassword, 10);
+		await run(
+			"INSERT INTO users (username, display_name, password_hash, role, can_upload_letter) VALUES (?, ?, ?, ?, ?)",
+			[username, displayName, hash, role, canUploadLetter],
+		);
+	}
+	console.log("Seeded 5 default users (3 admins, 2 normal users).");
+}
