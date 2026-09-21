@@ -26,3 +26,23 @@ for /f "usebackq tokens=1,2 delims==" %%a in (".env") do (
   if "%%a"=="MYSQL_PASSWORD" set MYSQL_PASSWORD=%%b
   if "%%a"=="MYSQL_DATABASE" set MYSQL_DATABASE=%%b
 )
+if not exist backups mkdir backups
+
+for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyy-MM-dd_HHmmss"') do set TIMESTAMP=%%i
+set OUTFILE=backups\gift_storage_%TIMESTAMP%.sql
+
+if "%MYSQL_PASSWORD%"=="" (
+  mysqldump -h %MYSQL_HOST% -P %MYSQL_PORT% -u %MYSQL_USER% %MYSQL_DATABASE% > "%OUTFILE%"
+) else (
+  mysqldump -h %MYSQL_HOST% -P %MYSQL_PORT% -u %MYSQL_USER% -p%MYSQL_PASSWORD% %MYSQL_DATABASE% > "%OUTFILE%"
+)
+
+if exist "%OUTFILE%" (
+  echo.
+  echo Backup saved to %OUTFILE%
+  echo Now copy the backups folder to a USB drive or cloud storage.
+) else (
+  echo.
+  echo Backup failed - check that mysqldump is on your PATH and MySQL is running.
+)
+pause
