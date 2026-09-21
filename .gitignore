@@ -1,0 +1,8 @@
+node_modules/
+.env
+uploads/*.pdf
+uploads/items/*
+!uploads/items/.gitkeep
+uploads/requests/*
+!uploads/requests/.gitkeep
+backups/*.sql
