@@ -88,4 +88,42 @@
 			}
 		</style>
 	</head>
+	<body data-page="dashboard">
+		<div class="app-shell">
+			<div id="sidebar-root"></div>
+
+			<main class="main">
+				<div class="page-header">
+					<div>
+						<h1 id="welcome-heading">Welcome</h1>
+						<div class="page-sub">Here's what's in the storage today.</div>
+					</div>
+				</div>
+
+				<div class="stats-row" id="stats-row">
+					<div class="stat-card">
+						<div class="stat-value skeleton" style="width: 40px; height: 30px">
+							&nbsp;
+						</div>
+						<div class="stat-label">Items tracked</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-value skeleton" style="width: 40px; height: 30px">
+							&nbsp;
+						</div>
+						<div class="stat-label">Units in storage</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-value skeleton" style="width: 40px; height: 30px">
+							&nbsp;
+						</div>
+						<div class="stat-label">Entries logged today</div>
+					</div>
+				</div>
+
+				<div class="section-title">Go to</div>
+				<div class="nav-card-grid" id="nav-card-grid"></div>
+			</main>
+		</div>
+	</body>
 </html>
