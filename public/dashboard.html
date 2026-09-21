@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Gift Storage — Dashboard</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="/css/style.css" />
+		<style>
+			.stats-row {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+				gap: 16px;
+				margin-bottom: 32px;
+			}
+			.stat-card {
+				background: var(--surface);
+				border: 1px solid var(--line-soft);
+				border-radius: var(--radius);
+				padding: 18px 20px;
+				animation: cardIn 0.35s var(--ease-out) backwards;
+			}
+			.stat-value {
+				font-family: "Fraunces", serif;
+				font-size: 30px;
+				font-weight: 600;
+				color: var(--teal);
+				font-variant-numeric: tabular-nums;
+			}
+			.stat-label {
+				font-size: 13px;
+				color: var(--ink-soft);
+				margin-top: 4px;
+			}
+
+			.nav-card-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+				gap: 18px;
+			}
+			.nav-card {
+				background: var(--surface);
+				border: 1px solid var(--line-soft);
+				border-radius: var(--radius);
+				padding: 22px;
+				text-decoration: none;
+				color: var(--ink);
+				display: block;
+				transition:
+					border-color 0.2s var(--ease-out),
+					transform 0.15s var(--ease-out),
+					box-shadow 0.2s var(--ease-out);
+				animation: cardIn 0.4s var(--ease-out) backwards;
+			}
+			.nav-card:hover {
+				border-color: var(--teal);
+				transform: translateY(-2px);
+				box-shadow: 0 10px 24px -14px rgba(31, 111, 92, 0.4);
+			}
+			.nav-card .glyph {
+				width: 38px;
+				height: 38px;
+				border-radius: 8px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 18px;
+				margin-bottom: 14px;
+				background: var(--teal-tint);
+				color: var(--teal-dark);
+			}
+			.nav-card.clay .glyph {
+				background: var(--clay-tint);
+				color: var(--clay-dark);
+			}
+			.nav-card h3 {
+				font-size: 17px;
+				margin-bottom: 6px;
+			}
+			.nav-card p {
+				font-size: 13.5px;
+				color: var(--ink-soft);
+				margin: 0;
+			}
+		</style>
+	</head>
+</html>
