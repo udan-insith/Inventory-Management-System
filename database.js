@@ -92,3 +92,93 @@ async function transaction(fn) {
 // carries its own item_name snapshot, so Total History reads correctly
 // even after the item is long gone.
 // ---------------------------------------------------------------------
+
+async function ensureSchema() {
+	await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id                INT AUTO_INCREMENT PRIMARY KEY,
+      username          VARCHAR(100) NOT NULL UNIQUE,
+      display_name      VARCHAR(150) NOT NULL,
+      password_hash     VARCHAR(255) NOT NULL,
+      role              ENUM('admin','normal') NOT NULL,
+      can_upload_letter TINYINT(1) NOT NULL DEFAULT 0,
+      created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB
+  `);
+
+	await pool.query(`
+    CREATE TABLE IF NOT EXISTS items (
+      id                  INT AUTO_INCREMENT PRIMARY KEY,
+      name                VARCHAR(150) NOT NULL UNIQUE,
+      balance             INT NOT NULL DEFAULT 0,
+      low_stock_threshold INT NOT NULL DEFAULT 5,
+      image_path          VARCHAR(500) NULL,
+      created_by          INT NULL,
+      created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB
+  `);
+
+	// One row per Issue/Receive event: which branch, what event, what date.
+	await pool.query(`
+    CREATE TABLE IF NOT EXISTS gift_transactions (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      type         ENUM('issue','receive') NOT NULL,
+      branch_name  VARCHAR(200) NOT NULL,
+      event_name   VARCHAR(200) NOT NULL,
+      log_date     DATE NOT NULL,
+      created_by   INT NULL,
+      created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB
+  `);
+
+	// One row per item inside a transaction (a single Issue/Receive can cover
+	// several items at once). item_name is a snapshot, so history keeps
+	// reading correctly even after the item itself is deleted.
+	await pool.query(`
+    CREATE TABLE IF NOT EXISTS gift_transaction_items (
+      id             INT AUTO_INCREMENT PRIMARY KEY,
+      transaction_id INT NOT NULL,
+      item_id        INT NULL,
+      item_name      VARCHAR(150) NOT NULL DEFAULT '',
+      quantity       INT NOT NULL,
+      balance_after  INT NOT NULL,
+      FOREIGN KEY (transaction_id) REFERENCES gift_transactions(id) ON DELETE CASCADE,
+      FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB
+  `);
+
+	// The Issue letter and the Receive letter are two independent one-time
+	// uploads (both by Udan School Leaver).
+	await pool.query(`
+    CREATE TABLE IF NOT EXISTS letters (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      type         ENUM('issue','receive') NOT NULL UNIQUE,
+      filename     VARCHAR(255) NOT NULL,
+      filepath     VARCHAR(500) NOT NULL,
+      uploaded_by  INT NULL,
+      uploaded_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB
+  `);
+
+	// A branch's incoming request (a scanned letter, photo, or Word doc)
+	// logged with its supporting document attached.
+	await pool.query(`
+    CREATE TABLE IF NOT EXISTS received_requests (
+      id            INT AUTO_INCREMENT PRIMARY KEY,
+      branch_name   VARCHAR(200) NOT NULL,
+      request_date  DATE NOT NULL,
+      description   TEXT,
+      file_path     VARCHAR(500) NOT NULL,
+      file_name     VARCHAR(255) NOT NULL,
+      file_type     VARCHAR(100) NOT NULL,
+      uploaded_by   INT NULL,
+      uploaded_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB
+  `);
+
+	await ensureColumn("items", "low_stock_threshold", "INT NOT NULL DEFAULT 5");
+}
