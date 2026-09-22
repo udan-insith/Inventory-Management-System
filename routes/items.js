@@ -125,13 +125,67 @@ router.post("/", (req, res, next) => {
 				"SELECT id, name, balance, low_stock_threshold, image_path, created_at FROM items WHERE id = ?",
 				[itemId],
 			);
-			res
-				.status(201)
-				.json({
-					item: { ...item, image_path: toPublicImagePath(item.image_path) },
-				});
+			res.status(201).json({
+				item: { ...item, image_path: toPublicImagePath(item.image_path) },
+			});
 		} catch (dbErr) {
 			next(dbErr);
 		}
 	});
 });
+
+// PATCH /api/items/:id/image -> change an item's photo any time
+router.patch("/:id/image", (req, res, next) => {
+	upload.single("image")(req, res, async (err) => {
+		try {
+			if (err)
+				return res
+					.status(400)
+					.json({ error: err.message || "Image upload failed." });
+			if (!req.file)
+				return res.status(400).json({ error: "Choose an image file." });
+
+			const item = await db.get("SELECT * FROM items WHERE id = ?", [
+				req.params.id,
+			]);
+			if (!item)
+				return res.status(404).json({ error: "That item no longer exists." });
+
+			await db.run("UPDATE items SET image_path = ? WHERE id = ?", [
+				req.file.path,
+				item.id,
+			]);
+
+			if (item.image_path && fs.existsSync(item.image_path)) {
+				fs.unlink(item.image_path, () => {});
+			}
+
+			res.json({ image_path: toPublicImagePath(req.file.path) });
+		} catch (dbErr) {
+			next(dbErr);
+		}
+	});
+});
+
+// DELETE /api/items/:id -> remove an item entirely (Admins only).
+// Its Issue/Receive history stays in Total History (item_name is already
+// snapshotted onto each transaction line) — only the item itself, and its
+// place on the Stock page, goes away.
+router.delete("/:id", requireAdmin, async (req, res) => {
+	const item = await db.get("SELECT * FROM items WHERE id = ?", [
+		req.params.id,
+	]);
+	if (!item) {
+		return res.status(404).json({ error: "That item no longer exists." });
+	}
+
+	await deleteItemKeepingHistory(item.id);
+
+	if (item.image_path && fs.existsSync(item.image_path)) {
+		fs.unlink(item.image_path, () => {});
+	}
+
+	res.json({ ok: true });
+});
+
+module.exports = router;
