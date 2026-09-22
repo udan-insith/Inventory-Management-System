@@ -29,3 +29,22 @@ const upload = multer({
 		cb(null, true);
 	},
 });
+
+// Public-facing path for an item's image (served as a static file — see server.js)
+function toPublicImagePath(absPath) {
+	if (!absPath) return null;
+	return `/item-images/${path.basename(absPath)}`;
+}
+
+// GET /api/items -> every item with its current balance
+router.get("/", async (req, res) => {
+	const items = await db.all(
+		"SELECT id, name, balance, low_stock_threshold, image_path, created_at FROM items ORDER BY name ASC",
+	);
+	res.json({
+		items: items.map((i) => ({
+			...i,
+			image_path: toPublicImagePath(i.image_path),
+		})),
+	});
+});
