@@ -130,3 +130,18 @@ router.get("/:id/file", async (req, res) => {
 	);
 	fs.createReadStream(row.file_path).pipe(res);
 });
+
+// DELETE /api/requests/:id -> remove a logged request (Admins only)
+router.delete("/:id", requireAdmin, async (req, res) => {
+	const row = await db.get("SELECT * FROM received_requests WHERE id = ?", [
+		req.params.id,
+	]);
+	if (!row) return res.status(404).json({ error: "Request not found." });
+
+	await db.run("DELETE FROM received_requests WHERE id = ?", [row.id]);
+	if (fs.existsSync(row.file_path)) fs.unlink(row.file_path, () => {});
+
+	res.json({ ok: true });
+});
+
+module.exports = router;
