@@ -48,3 +48,90 @@ router.get("/", async (req, res) => {
 		})),
 	});
 });
+// POST /api/items -> add a new item to the storage, with its current
+// balance and an optional photo.
+router.post("/", (req, res, next) => {
+	upload.single("image")(req, res, async (err) => {
+		try {
+			if (err)
+				return res
+					.status(400)
+					.json({ error: err.message || "Image upload failed." });
+
+			const { name, balance, lowStockThreshold } = req.body || {};
+			if (!name || !name.trim()) {
+				return res.status(400).json({ error: "Give the item a name." });
+			}
+			const startingBalance = Number.isFinite(Number(balance))
+				? Math.max(0, Math.trunc(Number(balance)))
+				: 0;
+			const threshold = Number.isFinite(Number(lowStockThreshold))
+				? Math.max(0, Math.trunc(Number(lowStockThreshold)))
+				: 5;
+
+			const existing = await db.get("SELECT id FROM items WHERE name = ?", [
+				name.trim(),
+			]);
+			if (existing) {
+				return res
+					.status(409)
+					.json({ error: "An item with that name already exists." });
+			}
+
+			const imagePath = req.file ? req.file.path : null;
+
+			const itemId = await db.transaction(async (tx) => {
+				const info = await tx.run(
+					"INSERT INTO items (name, balance, low_stock_threshold, image_path, created_by) VALUES (?, ?, ?, ?, ?)",
+					[
+						name.trim(),
+						startingBalance,
+						threshold,
+						imagePath,
+						req.session.user.id,
+					],
+				);
+
+				// Record the starting balance as a "receive" transaction so the
+				// logs always reconcile with the balance shown on screen.
+				if (startingBalance > 0) {
+					const today = new Date().toISOString().slice(0, 10);
+					const txInfo = await tx.run(
+						"INSERT INTO gift_transactions (type, branch_name, event_name, log_date, created_by) VALUES (?, ?, ?, ?, ?)",
+						[
+							"receive",
+							"—",
+							"Initial stock balance",
+							today,
+							req.session.user.id,
+						],
+					);
+					await tx.run(
+						"INSERT INTO gift_transaction_items (transaction_id, item_id, item_name, quantity, balance_after) VALUES (?, ?, ?, ?, ?)",
+						[
+							txInfo.lastInsertRowid,
+							info.lastInsertRowid,
+							name.trim(),
+							startingBalance,
+							startingBalance,
+						],
+					);
+				}
+
+				return info.lastInsertRowid;
+			});
+
+			const item = await db.get(
+				"SELECT id, name, balance, low_stock_threshold, image_path, created_at FROM items WHERE id = ?",
+				[itemId],
+			);
+			res
+				.status(201)
+				.json({
+					item: { ...item, image_path: toPublicImagePath(item.image_path) },
+				});
+		} catch (dbErr) {
+			next(dbErr);
+		}
+	});
+});
