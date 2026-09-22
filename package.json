@@ -1,0 +1,23 @@
+{
+  "name": "gift-storage-system",
+  "version": "1.0.0",
+  "description": "Storage management system for a school Gift Storage.",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "multer": "^2.3.0",
+    "mysql2": "^3.24.3"
+  }
+}
