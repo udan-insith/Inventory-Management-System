@@ -26,6 +26,7 @@ for /f "usebackq tokens=1,2 delims==" %%a in (".env") do (
   if "%%a"=="MYSQL_PASSWORD" set MYSQL_PASSWORD=%%b
   if "%%a"=="MYSQL_DATABASE" set MYSQL_DATABASE=%%b
 )
+
 if not exist backups mkdir backups
 
 for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyy-MM-dd_HHmmss"') do set TIMESTAMP=%%i
