@@ -41,9 +41,22 @@ if "%MYSQL_PASSWORD%"=="" (
 if exist "%OUTFILE%" (
   echo.
   echo Backup saved to %OUTFILE%
-  echo Now copy the backups folder to a USB drive or cloud storage.
 ) else (
   echo.
   echo Backup failed - check that mysqldump is on your PATH and MySQL is running.
+  pause
+  exit /b 1
 )
+
+REM Also copy the uploaded photos/letters alongside the database dump.
+REM This is what makes item photos survive a move to a new folder/computer -
+REM the database and the actual image files travel together from now on.
+set UPLOADSOUT=backups\uploads_%TIMESTAMP%
+if exist uploads (
+  robocopy uploads "%UPLOADSOUT%" /E /NFL /NDL /NJH /NJS >nul
+  echo Photos/letters copied to %UPLOADSOUT%
+)
+
+echo.
+echo Now copy the backups folder to a USB drive or cloud storage.
 pause
