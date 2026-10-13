@@ -30,10 +30,13 @@ const upload = multer({
 	},
 });
 
-// Public-facing path for an item's image (served as a static file — see server.js)
-function toPublicImagePath(absPath) {
-	if (!absPath) return null;
-	return `/item-images/${path.basename(absPath)}`;
+// Only the bare filename is ever stored in items.image_path now (see the
+// fix-item-images migration). The public URL is built fresh from whatever
+// the CURRENT ITEM_IMAGE_DIR is, so nothing can point at a stale location —
+// this is what makes photos survive the project folder being moved again.
+function toPublicImagePath(value) {
+	if (!value) return null;
+	return `/item-images/${path.basename(value)}`;
 }
 
 // GET /api/items -> every item with its current balance
@@ -78,7 +81,9 @@ router.post("/", (req, res, next) => {
 					.json({ error: "An item with that name already exists." });
 			}
 
-			const imagePath = req.file ? req.file.path : null;
+			// Store just the filename, never the full disk path — see the note
+			// above toPublicImagePath().
+			const imagePath = req.file ? req.file.filename : null;
 
 			const itemId = await db.transaction(async (tx) => {
 				const info = await tx.run(
@@ -152,15 +157,16 @@ router.patch("/:id/image", (req, res, next) => {
 				return res.status(404).json({ error: "That item no longer exists." });
 
 			await db.run("UPDATE items SET image_path = ? WHERE id = ?", [
-				req.file.path,
+				req.file.filename,
 				item.id,
 			]);
 
-			if (item.image_path && fs.existsSync(item.image_path)) {
-				fs.unlink(item.image_path, () => {});
+			if (item.image_path) {
+				const oldFile = path.join(ITEM_IMAGE_DIR, path.basename(item.image_path));
+				if (fs.existsSync(oldFile)) fs.unlink(oldFile, () => {});
 			}
 
-			res.json({ image_path: toPublicImagePath(req.file.path) });
+			res.json({ image_path: toPublicImagePath(req.file.filename) });
 		} catch (dbErr) {
 			next(dbErr);
 		}
@@ -181,8 +187,9 @@ router.delete("/:id", requireAdmin, async (req, res) => {
 
 	await deleteItemKeepingHistory(item.id);
 
-	if (item.image_path && fs.existsSync(item.image_path)) {
-		fs.unlink(item.image_path, () => {});
+	if (item.image_path) {
+		const file = path.join(ITEM_IMAGE_DIR, path.basename(item.image_path));
+		if (fs.existsSync(file)) fs.unlink(file, () => {});
 	}
 
 	res.json({ ok: true });

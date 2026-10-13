@@ -157,10 +157,17 @@ document.getElementById('txn-form').addEventListener('submit', async (e) => {
 });
 
 // ------------------------- Print (letter + generated details sheet) -------------------------
+// "Print" does two things: (1) prints an on-screen details sheet straight
+// away, same as before, and (2) downloads the real bank letter with the
+// branch/date/items/receiver filled straight into it. A .docx can't be
+// pushed into the browser's print dialog the way the old static PDF was,
+// so it downloads instead — open it in Word and print from there.
 document.getElementById('txn-print-btn').addEventListener('click', async () => {
   const branchName = document.getElementById('txn-branch').value;
   const date = document.getElementById('txn-date').value;
   const eventName = document.getElementById('txn-event').value.trim();
+  const receiverName = document.getElementById('txn-receiver-name').value.trim();
+  const pfNumber = document.getElementById('txn-pf-number').value.trim();
 
   if (!branchName || !eventName || !date || currentTxnLines.length === 0) {
     toast('Fill in the branch, date, event and at least one item before printing.', 'error');
@@ -187,25 +194,40 @@ document.getElementById('txn-print-btn').addEventListener('click', async () => {
   window.print();
 
   try {
-    const res = await fetch(`/api/letters/${txnType}/file`, { credentials: 'same-origin' });
+    const res = await fetch(`/api/letters/${txnType}/print`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        branchName,
+        date,
+        items: currentTxnLines.map((l) => ({ name: l.name, qty: l.quantity })),
+        receiverName,
+        pfNumber,
+      }),
+    });
     if (!res.ok) {
-      toast('Details sheet printed. No letter has been uploaded yet, so only that was printed.');
+      let message = 'Could not generate the letter.';
+      try { message = (await res.json()).error || message; } catch (e) { /* ignore */ }
+      toast(`Details sheet printed. ${message}`, 'error');
       return;
     }
     const blob = await res.blob();
+    const disposition = res.headers.get('Content-Disposition') || '';
+    const match = disposition.match(/filename="([^"]+)"/);
+    const filename = match ? match[1] : `Gift-${txnType}-letter.docx`;
+
     const url = URL.createObjectURL(blob);
-    const frame = document.getElementById('letter-print-frame');
-    frame.onload = () => {
-      try {
-        frame.contentWindow.focus();
-        frame.contentWindow.print();
-      } catch (err) {
-        window.open(url, '_blank');
-      }
-    };
-    frame.src = url;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast('Letter downloaded — open it to print.');
   } catch (err) {
-    // details sheet already printed — letter step is a bonus, fail quietly
+    toast('Details sheet printed, but the letter could not be generated.', 'error');
   }
 });
 
@@ -217,14 +239,12 @@ async function loadLetterStatus() {
   try {
     const { letter, canUpload } = await api.get(`/api/letters/${txnType}`);
     if (letter) {
-      subEl.textContent = `Uploaded by ${letter.uploadedBy} on ${new Date(letter.uploadedAt).toLocaleDateString()}`;
-      uploadBtn.style.display = 'none';
+      subEl.textContent = `Custom template uploaded by ${letter.uploadedBy} on ${new Date(letter.uploadedAt).toLocaleDateString()}`;
     } else {
-      subEl.textContent = canUpload
-        ? 'Not uploaded yet — you can upload it once.'
-        : 'Not uploaded yet. Printing will only produce the details sheet until it is.';
-      uploadBtn.style.display = canUpload ? 'inline-flex' : 'none';
+      subEl.textContent = 'Using the built-in letter template.';
     }
+    uploadBtn.textContent = letter ? 'Replace template' : 'Upload a different template';
+    uploadBtn.style.display = canUpload ? 'inline-flex' : 'none';
   } catch (e) {
     subEl.textContent = 'Could not check status.';
   }
@@ -240,9 +260,11 @@ document.getElementById('upload-letter-form').addEventListener('submit', async (
   e.preventDefault();
   const file = document.getElementById('letter-file').files[0];
   const submitBtn = document.getElementById('upload-letter-submit');
+  const isDocx = file && (file.name.toLowerCase().endsWith('.docx') ||
+    file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 
-  if (!file) return showError('upload-letter-error', 'Choose a PDF file.');
-  if (file.type !== 'application/pdf') return showError('upload-letter-error', 'The letter must be a PDF file.');
+  if (!file) return showError('upload-letter-error', 'Choose a Word (.docx) file.');
+  if (!isDocx) return showError('upload-letter-error', 'The template must be a Word (.docx) file.');
 
   const formData = new FormData();
   formData.append('letter', file);
@@ -252,7 +274,7 @@ document.getElementById('upload-letter-form').addEventListener('submit', async (
 
   try {
     await api.upload(`/api/letters/${txnType}/upload`, formData);
-    toast('Letter uploaded. This is now the file everyone will print.');
+    toast('Template uploaded. This is now what everyone’s letter is generated from.');
     modalHelper.close(uploadLetterModal);
     loadLetterStatus();
   } catch (err) {

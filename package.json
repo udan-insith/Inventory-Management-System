@@ -14,10 +14,12 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "docxtemplater": "^3.71.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "multer": "^2.3.0",
-    "mysql2": "^3.24.3"
+    "mysql2": "^3.24.3",
+    "pizzip": "^3.3.0"
   }
 }

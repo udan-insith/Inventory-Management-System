@@ -6,6 +6,19 @@ const addItemModal = document.getElementById('add-item-modal');
 const changePhotoModal = document.getElementById('change-photo-modal');
 const logModal = document.getElementById('log-modal');
 
+// Adjustable (zoom + drag) photo previews for both the Add Item and Change
+// Photo modals. The cropped square they produce is what actually gets
+// uploaded, not the raw file.
+const addItemPicker = createImagePicker(document.getElementById('new-item-image-picker'));
+document.getElementById('new-item-image').addEventListener('change', (e) => {
+  addItemPicker.load(e.target.files[0]);
+});
+
+const changePhotoPicker = createImagePicker(document.getElementById('change-photo-picker'));
+document.getElementById('change-photo-file').addEventListener('change', (e) => {
+  changePhotoPicker.load(e.target.files[0]);
+});
+
 [addItemModal, changePhotoModal, logModal].forEach((m) => modalHelper.wireDismiss(m));
 
 document.addEventListener('shell-ready', () => {
@@ -48,8 +61,10 @@ function renderGrid() {
         window.currentUser && window.currentUser.role === 'admin'
           ? `<button class="item-delete-btn" data-item-id="${item.id}" title="Delete item" aria-label="Delete ${escapeHtml(item.name)}">&times;</button>`
           : '';
+      // onerror swaps a broken/missing photo for the placeholder icon
+      // instead of showing raw alt text.
       const photoInner = item.image_path
-        ? `<img src="${item.image_path}" alt="${escapeHtml(item.name)}" />`
+        ? `<img src="${item.image_path}" alt="${escapeHtml(item.name)}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'placeholder-icon',innerHTML:'&#127873;'}))" />`
         : '<span class="placeholder-icon">&#127873;</span>';
       const lowStockBadge =
         item.balance <= item.low_stock_threshold ? '<span class="low-stock-badge">Low stock</span>' : '';
@@ -123,6 +138,7 @@ document.getElementById('add-item-btn').addEventListener('click', () => {
   document.getElementById('add-item-form').reset();
   document.getElementById('new-item-balance').value = 0;
   document.getElementById('new-item-low-stock').value = 5;
+  addItemPicker.reset();
   hideError('add-item-error');
   modalHelper.open(addItemModal);
 });
@@ -132,34 +148,37 @@ document.getElementById('add-item-form').addEventListener('submit', async (e) =>
   const name = document.getElementById('new-item-name').value.trim();
   const balance = document.getElementById('new-item-balance').value;
   const lowStockThreshold = document.getElementById('new-item-low-stock').value;
-  const imageFile = document.getElementById('new-item-image').files[0];
   const submitBtn = document.getElementById('add-item-submit');
 
   if (!name) return showError('add-item-error', 'Give the item a name.');
 
-  const formData = new FormData();
-  formData.append('name', name);
-  formData.append('balance', balance || 0);
-  formData.append('lowStockThreshold', lowStockThreshold || 5);
-  if (imageFile) formData.append('image', imageFile);
-
   submitBtn.disabled = true;
-  try {
-    await api.upload('/api/items', formData);
-    toast(`"${name}" added to the storage.`);
-    modalHelper.close(addItemModal);
-    await loadItems();
-  } catch (err) {
-    showError('add-item-error', err.message);
-  } finally {
-    submitBtn.disabled = false;
-  }
+  addItemPicker.toBlob(async (blob) => {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('balance', balance || 0);
+    formData.append('lowStockThreshold', lowStockThreshold || 5);
+    if (blob) formData.append('image', blob, 'item.jpg');
+
+    try {
+      await api.upload('/api/items', formData);
+      toast(`"${name}" added to the storage.`);
+      modalHelper.close(addItemModal);
+      addItemPicker.reset();
+      await loadItems();
+    } catch (err) {
+      showError('add-item-error', err.message);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
 });
 
 // ------------------------- Change Photo -------------------------
 function openChangePhotoModal(itemId) {
   photoTargetItemId = itemId;
   document.getElementById('change-photo-form').reset();
+  changePhotoPicker.reset();
   hideError('change-photo-error');
   modalHelper.open(changePhotoModal);
 }
@@ -167,33 +186,35 @@ function openChangePhotoModal(itemId) {
 document.getElementById('change-photo-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!photoTargetItemId) return;
-  const file = document.getElementById('change-photo-file').files[0];
   const submitBtn = document.getElementById('change-photo-submit');
-  if (!file) return showError('change-photo-error', 'Choose an image file.');
-
-  const formData = new FormData();
-  formData.append('image', file);
+  if (!changePhotoPicker.hasImage()) return showError('change-photo-error', 'Choose an image file.');
 
   submitBtn.disabled = true;
-  try {
-    const res = await fetch(`/api/items/${photoTargetItemId}/image`, {
-      method: 'PATCH',
-      credentials: 'same-origin',
-      body: formData,
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Upload failed.');
+  changePhotoPicker.toBlob(async (blob) => {
+    const formData = new FormData();
+    formData.append('image', blob, 'item.jpg');
 
-    const item = items.find((i) => i.id === photoTargetItemId);
-    if (item) item.image_path = data.image_path;
-    toast('Photo updated.');
-    modalHelper.close(changePhotoModal);
-    renderGrid();
-  } catch (err) {
-    showError('change-photo-error', err.message);
-  } finally {
-    submitBtn.disabled = false;
-  }
+    try {
+      const res = await fetch(`/api/items/${photoTargetItemId}/image`, {
+        method: 'PATCH',
+        credentials: 'same-origin',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed.');
+
+      const item = items.find((i) => i.id === photoTargetItemId);
+      if (item) item.image_path = data.image_path;
+      toast('Photo updated.');
+      modalHelper.close(changePhotoModal);
+      changePhotoPicker.reset();
+      renderGrid();
+    } catch (err) {
+      showError('change-photo-error', err.message);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
 });
 
 // ------------------------- View Log -------------------------
